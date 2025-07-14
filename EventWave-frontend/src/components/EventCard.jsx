@@ -1,32 +1,62 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { registerForEvent, addToWishlist } from '../api/eventService';
 
 const EventCard = ({ event }) => {
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false); // Add a loading state for the button
+  const navigate = useNavigate(); // Hook to redirect the user after registration
 
-  const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
+  // This formatting function is correct.
+  const formattedDate = new Date(event.dateTime).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   });
 
-  const handleRegisterClick = (e) => {
-    e.preventDefault(); // Prevent link navigation when button is clicked
-    console.log(`Registering for event ID: ${event.id}`);
-    // **API HOOK:** This is where you'll call the API to register the user for the event.
-    // await registerForEvent(event.id);
-    alert(`Registration for "${event.title}" is in progress! (API call needed)`);
+  // This is the code inside EventCard.jsx
+
+// inside EventCard.jsx
+
+  const handleRegisterClick = async (e) => {
+    e.preventDefault();
+    setIsRegistering(true);
+
+    try {
+      await registerForEvent(event.eventId);
+      
+      alert(`Successfully registered for "${event.title}"!`);
+      
+      // Use this to force a full page navigation and reload
+      window.location.href = '/my-registrations';
+
+    } catch (err) {
+      console.error("Registration failed:", err);
+      const errorMessage = err.response?.data?.message || 'An error occurred during registration.';
+      alert(`Could not register for this event. Reason: ${errorMessage}`);
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
-  const handleFavoriteClick = (e) => {
+   const handleFavoriteClick = async (e) => {
     e.preventDefault();
-    setIsFavorited(!isFavorited);
-    // **API HOOK:** This is where you'll call the API to add/remove from wishlist.
-    // await toggleFavorite(event.id);
-    console.log(`Toggling favorite for event ID: ${event.id}`);
+    // We won't toggle it here yet, as the backend is the source of truth.
+    // A more advanced implementation would handle the toggle state.
+    
+    try {
+      // Call the API to add the event to the wishlist
+      const response = await addToWishlist(event.eventId);
+      setIsFavorited(true); // Visually confirm it was added
+      alert(response); // Show the success message, e.g., "wishlist added"
+    } catch (err) {
+      console.error("Failed to add to wishlist:", err);
+      alert(`Error: ${err.response?.data?.message || 'Could not add to wishlist'}`);
+    }
   };
 
   return (
     <div className="bg-slate-800 rounded-lg overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
-      <Link to={`/events/${event.id}`} className="flex-grow">
+      {/* Use event.eventId for the link */}
+      <Link to={`/events/${event.eventId}`} className="flex-grow">
         <div className="relative">
           <img className="w-full h-48 object-cover" src={event.imageUrl} alt={event.title} />
           <button onClick={handleFavoriteClick} className="absolute top-2 right-2 bg-black/50 p-2 rounded-full backdrop-blur-sm">
@@ -39,7 +69,6 @@ const EventCard = ({ event }) => {
           <p className="text-sm text-indigo-400 font-semibold mb-2">{formattedDate}</p>
           <h3 className="text-xl font-bold text-white mb-2 truncate">{event.title}</h3>
           <p className="text-slate-400 flex items-center">
-            {/* Location Icon */}
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
             {event.location}
           </p>
@@ -48,9 +77,11 @@ const EventCard = ({ event }) => {
       <div className="px-6 pb-4">
         <button
           onClick={handleRegisterClick}
-          className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-500 transition-colors"
+          disabled={isRegistering} // Disable button while the API call is in progress
+          className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Register Now
+          {/* Change button text based on loading state */}
+          {isRegistering ? 'Registering...' : 'Register Now'}
         </button>
       </div>
     </div>

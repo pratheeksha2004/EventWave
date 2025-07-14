@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getMyRegisteredEvents } from '../api/eventService';
+import { getMyRegisteredEvents, unregisterFromEvent } from '../api/eventService'; 
 import RegisteredEventCard from '../components/RegisteredEventCard';
 
 const MyRegistrationsPage = () => {
@@ -12,7 +12,7 @@ const MyRegistrationsPage = () => {
     const fetchRegistrations = async () => {
       try {
         setLoading(true);
-        const data = await getMyRegisteredEvents(); // Call our new mock function
+        const data = await getMyRegisteredEvents(); 
         setRegistrations(data);
       } catch (err) {
         setError("Could not fetch your registrations. Please try again.");
@@ -23,13 +23,41 @@ const MyRegistrationsPage = () => {
     fetchRegistrations();
   }, []);
 
+  // ✅ This function now correctly prepares the data for the unregister API
+  const handleUnregister = async (eventId) => {
+    if (!window.confirm("Are you sure you want to unregister from this event?")) {
+      return;
+    }
+    try {
+      // Get the logged-in user's details from localStorage
+      const userString = localStorage.getItem('user');
+      if (!userString) throw new Error("User not logged in");
+      const user = JSON.parse(userString);
+
+      // Prepare the request body as required by the backend
+      const unregistrationData = {
+        userId: user.userId, // Or user.id - check your user object
+        eventId: eventId,
+      };
+
+      await unregisterFromEvent(unregistrationData);
+      
+      // Update the UI to remove the card
+      setRegistrations(currentRegistrations =>
+        currentRegistrations.filter(event => event.eventId !== eventId)
+      );
+
+      alert("Successfully unregistered from the event.");
+
+    } catch (err) {
+      console.error("Unregistration failed:", err);
+      alert(`Error: ${err.response?.data?.message || 'Could not unregister.'}`);
+    }
+  };
+
   const renderContent = () => {
-    if (loading) {
-      return <p className="text-center text-slate-400">Loading your events...</p>;
-    }
-    if (error) {
-      return <p className="text-center text-red-400">{error}</p>;
-    }
+    if (loading) { return <p>Loading your events...</p>; }
+    if (error) { return <p>{error}</p>; }
     if (registrations.length === 0) {
       return (
         <div className="text-center bg-slate-800 p-8 rounded-lg">
@@ -44,7 +72,11 @@ const MyRegistrationsPage = () => {
     return (
       <div className="space-y-6">
         {registrations.map(event => (
-          <RegisteredEventCard key={event.id} event={event} />
+          <RegisteredEventCard 
+            key={event.eventId} 
+            event={event} 
+            onUnregister={handleUnregister} 
+          />
         ))}
       </div>
     );
@@ -54,7 +86,6 @@ const MyRegistrationsPage = () => {
     <div className="container mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-white mb-2">My Registered Events</h1>
       <p className="text-slate-400 mb-8">Here are all the events you're signed up for.</p>
-      
       {renderContent()}
     </div>
   );

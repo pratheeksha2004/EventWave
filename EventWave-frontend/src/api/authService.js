@@ -22,9 +22,11 @@ export const register = async (userData) => {
  * @returns {Promise<object>} The response data from the server (e.g., JWT token and user info).
  */
 export const login = async (credentials) => {
-  // The backend endpoint for login is typically '/api/auth/login'
-  const response = await axios.post(`${API_URL}/login`, credentials);
-  return response.data;
+  const response = await axios.post('/api/auth/login', credentials);
+  if (response.data && response.data.token) {
+    return response.data.token; // Return just the token string
+  }
+  throw new Error('Login response did not contain a token.');
 };
 
 // We can add other auth-related API calls here later, like logout, forgotPassword, etc.

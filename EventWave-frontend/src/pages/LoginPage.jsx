@@ -1,44 +1,47 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // Good, you need this to read the token
 import AuthLayout from '../components/AuthLayout';
-import { login } from '../api/authService'; // <-- We now import the API function directly
+import { login } from '../api/authService';
 
 const LoginPage = () => {
-  // --- Local State Management ---
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false); // This component now owns the loading state
+  const navigate = useNavigate();
+  // Using 'username' here is correct if your backend expects a username
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Hook to redirect the user after login
 
-  // --- Handlers ---
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Stop the form from reloading the page
-    setLoading(true);   // Start the loading indicator
-    setError(null);     // Clear any previous errors
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
-      // **THIS IS THE API HOOK**
-      // We call the login function from our service file.
-      // For now, it will return a mock response.
-      const responseData = await login(formData);
+      const token = await login(formData); // Assume authService handles the API call
 
-      console.log('Login Successful, backend returned:', responseData);
-      
-      // On success, redirect the user to their dashboard.
-      navigate('/dashboard');
+      // This is the most important part for protected routes to work
+      localStorage.setItem('token', token);
+
+      // Decode the token to find the user's role for redirection
+      const decodedToken = jwtDecode(token);
+       const userRole = decodedToken.role; // Assumes the role claim is named 'role'
+       console.log('Decoded Token:', decodedToken);
+      // Redirect based on the role
+      if (userRole === 'ORGANIZER') {
+        navigate('/organizer-dashboard');
+      } else {
+        navigate('/dashboard'); // For attendees ('USER' role)
+      }
 
     } catch (err) {
-      // If the API call fails, we catch the error here.
-      console.error('Login failed:', err);
-      // Set a user-friendly error message to display in the UI.
-      setError('Login failed. Please check your credentials and try again.');
+       console.error('Login failed:', err); 
+      setError(err.response?.data || 'Login failed. Please check your credentials.');
     } finally {
-      // This runs whether the login succeeded or failed.
-      setLoading(false); // Stop the loading indicator
+      setLoading(false);
     }
   };
 
@@ -50,26 +53,26 @@ const LoginPage = () => {
       footerLinkText="Sign Up"
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
-        {/* Email Input */}
+        {/* The form correctly uses 'username' */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-slate-300">
-            Email Address
+          <label htmlFor="username" className="block text-sm font-medium text-slate-300">
+            Username
           </label>
           <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
+            id="username"
+            name="username"
+            type="text"
+            autoComplete="username"
             required
-            value={formData.email}
+            value={formData.username}
             onChange={handleInputChange}
-            disabled={loading} // Disable input when loading
+            disabled={loading}
             className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
-            placeholder="you@example.com"
+            placeholder="Enter your username"
           />
         </div>
-
-        {/* Password Input */}
+        
+        {/* Password field is standard */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-slate-300">
             Password
@@ -82,16 +85,13 @@ const LoginPage = () => {
             required
             value={formData.password}
             onChange={handleInputChange}
-            disabled={loading} // Disable input when loading
+            disabled={loading}
             className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
             placeholder="••••••••"
           />
         </div>
-
-        {/* Error Display */}
+        
         {error && <p className="text-sm text-red-400 text-center">{error}</p>}
-
-        {/* Submit Button */}
         <div>
           <button
             type="submit"

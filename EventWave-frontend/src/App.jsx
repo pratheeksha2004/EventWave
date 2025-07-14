@@ -18,11 +18,11 @@ import MyWishlistPage from './pages/MyWishlistPage';
 import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
 import CreateEventPage from './pages/CreateEventPage';
 import ViewAttendeesPage from './pages/ViewAttendeesPage';
+// ✅ FIX: Import the real EditEventPage component
+import EditEventPage from './pages/EditEventPage'; 
 
-// --- Shared or Placeholder Page Components ---
-// These can be replaced with real components later.
-const ProfilePage = () => <div className="p-8 text-white text-3xl">Edit Profile Page</div>;
-const EditEventPage = () => <div className="p-8 text-white text-3xl">Edit Event Page</div>;
+// --- Shared Page Component ---
+import ProfilePage from './pages/ProfilePage';
 
 
 function App() {
@@ -38,13 +38,15 @@ function App() {
         <Route path="/dashboard" element={<AttendeeDashboardPage />} />
         <Route path="/my-registrations" element={<MyRegistrationsPage />} />
         <Route path="/my-wishlist" element={<MyWishlistPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        {/* Profile page can be shared across layouts if needed */}
+        <Route path="/profile" element={<ProfilePage />} /> 
       </Route>
 
       {/* --- ORGANIZER Routes (using OrganizerLayout) --- */}
       <Route element={<OrganizerLayout />}>
         <Route path="/organizer-dashboard" element={<OrganizerDashboardPage />} />
         <Route path="/create-event" element={<CreateEventPage />} />
+        {/* ✅ FIX: This route now correctly points to the imported EditEventPage component */}
         <Route path="/events/:id/edit" element={<EditEventPage />} />
         <Route path="/events/:id/attendees" element={<ViewAttendeesPage />} />
       </Route>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getMyWishlist } from '../api/eventService';
-import WishlistEventCard from '../components/WishlistEventCard'; // <-- Use our new component
+// ✅ FIX: Import the REAL API functions
+import { getMyWishlist, removeFromWishlist } from '../api/eventService'; 
+import WishlistEventCard from '../components/WishlistEventCard';
 
 const MyWishlistPage = () => {
   const [wishlist, setWishlist] = useState([]);
@@ -9,34 +10,44 @@ const MyWishlistPage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // This function now fetches REAL data from the backend
     const fetchWishlist = async () => {
       try {
         setLoading(true);
         const data = await getMyWishlist();
         setWishlist(data);
       } catch (err) {
+        console.error("Failed to fetch wishlist:", err);
         setError("Could not fetch your wishlist. Please try again.");
       } finally {
         setLoading(false);
       }
     };
     fetchWishlist();
-  }, []);
+  }, []); // The empty array ensures this runs only once when the page loads
 
-  const handleRemoveFromWishlist = (eventId) => {
-    console.log(`Removing event ID: ${eventId} from wishlist.`);
-    // **API HOOK:** Here you would call your API to remove the item.
-    // await removeFromWishlistAPI(eventId);
+  // ✅ FIX: This function now calls the REAL remove API
+  const handleRemoveFromWishlist = async (eventId) => {
+    try {
+      const responseMessage = await removeFromWishlist(eventId);
+      
+      // After a successful API call, update the UI by removing the item from the state
+      setWishlist(currentWishlist => 
+        currentWishlist.filter(event => event.eventId !== eventId)
+      );
 
-    // Update the UI optimistically by filtering out the removed item
-    setWishlist(currentWishlist => currentWishlist.filter(event => event.id !== eventId));
-    
-    alert(`Event removed from wishlist! (UI only for now)`);
+      // Show the success message from the backend
+      alert(responseMessage || "Event removed from wishlist!"); 
+
+    } catch (err) {
+      console.error("Failed to remove from wishlist:", err);
+      const errorMessage = err.response?.data?.message || 'Could not remove item.';
+      alert(`Error: ${errorMessage}`);
+    }
   };
 
   const renderContent = () => {
     if (loading) {
-      // A more visual loader
       return (
         <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-400"></div>
@@ -58,11 +69,11 @@ const MyWishlistPage = () => {
       );
     }
     return (
-      // Use a single-column layout with spacing
       <div className="flex flex-col gap-8">
         {wishlist.map(event => (
+          // ✅ FIX: Use the unique 'eventId' from the backend for the key prop
           <WishlistEventCard 
-            key={event.id} 
+            key={event.eventId} 
             event={event} 
             onRemove={handleRemoveFromWishlist} // Pass the remove function
           />
