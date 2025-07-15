@@ -1,62 +1,65 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerForEvent, addToWishlist } from '../api/eventService';
+// --- STEP 1: Import the placeholder images array ---
+import { placeholderImages } from '../assets/image-placeholder';
 
 const EventCard = ({ event }) => {
+  // Your existing state variables are perfect
   const [isFavorited, setIsFavorited] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false); // Add a loading state for the button
-  const navigate = useNavigate(); // Hook to redirect the user after registration
+  const [isRegistering, setIsRegistering] = useState(false);
+  const navigate = useNavigate();
 
-  // This formatting function is correct.
+  // Your date formatting is correct
   const formattedDate = new Date(event.dateTime).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   });
 
-  // This is the code inside EventCard.jsx
+  // --- STEP 2: Logic to select the correct image ---
+  let displayImageUrl;
+  if (event.imageUrl) {
+    // If the backend provides a real image URL, use it.
+    displayImageUrl = event.imageUrl;
+  } else {
+    // Otherwise, pick a placeholder based on the event's ID.
+    // The modulo operator (%) ensures we always get a valid index.
+    // We check for event.eventId first, then event.id, to be safe.
+    const eventIdForImage = event.eventId || event.id;
+    const placeholderIndex = eventIdForImage % placeholderImages.length;
+    displayImageUrl = placeholderImages[placeholderIndex];
+  }
 
-// inside EventCard.jsx
-
+  // Your handleRegister function is correct
   const handleRegister = async () => {
-    // LOG 1: Check if the function is even being called
+    setIsRegistering(true); // Set loading state to true
     console.log("1. handleRegister function has been triggered!");
-
     try {
-      // Assuming you get the eventId from state or props
-      const eventId = event.eventId; // Or however you access it
-
-      // LOG 2: Check if you have the eventId before calling the API
+      const eventId = event.eventId;
       console.log("2. Attempting to register for eventId:", eventId);
-      
       if (!eventId) {
         console.error("CRITICAL: eventId is missing. Cannot register.");
         alert("Error: Cannot identify the event.");
         return;
       }
-
       const response = await registerForEvent(eventId);
-
-      // LOG 4: This will only run if the API call succeeds
       console.log("4. API call was successful! Response:", response);
       alert("Successfully registered for the event!");
-      // Maybe navigate the user away or update the UI
-      
     } catch (err) {
       console.error("CRITICAL: The API call failed with an error.", err);
-      alert("Registration failed. Please try again.");
+      alert(err.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setIsRegistering(false); // Reset loading state
     }
   };
 
-
-   const handleFavoriteClick = async (e) => {
+  // Your handleFavoriteClick function is correct
+  const handleFavoriteClick = async (e) => {
     e.preventDefault();
-    // We won't toggle it here yet, as the backend is the source of truth.
-    // A more advanced implementation would handle the toggle state.
-    
+    e.stopPropagation(); // Prevent the Link from navigating when the heart is clicked
     try {
-      // Call the API to add the event to the wishlist
       const response = await addToWishlist(event.eventId);
-      setIsFavorited(true); // Visually confirm it was added
-      alert(response); // Show the success message, e.g., "wishlist added"
+      setIsFavorited(true);
+      alert(response);
     } catch (err) {
       console.error("Failed to add to wishlist:", err);
       alert(`Error: ${err.response?.data?.message || 'Could not add to wishlist'}`);
@@ -65,17 +68,17 @@ const EventCard = ({ event }) => {
 
   return (
     <div className="bg-slate-800 rounded-lg overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
-      {/* Use event.eventId for the link */}
-      <Link to={`/events/${event.eventId}`} className="flex-grow">
+      <Link to={`/events/${event.eventId}`} className="flex-grow flex flex-col">
         <div className="relative">
-          <img className="w-full h-48 object-cover" src={event.imageUrl} alt={event.title} />
-          <button onClick={handleFavoriteClick} className="absolute top-2 right-2 bg-black/50 p-2 rounded-full backdrop-blur-sm">
+          {/* --- STEP 3: Use the selected displayImageUrl here --- */}
+          <img className="w-full h-48 object-cover" src={displayImageUrl} alt={event.title} />
+          <button onClick={handleFavoriteClick} className="absolute top-2 right-2 bg-black/50 p-2 rounded-full backdrop-blur-sm z-10">
             <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 transition-all ${isFavorited ? 'text-red-500' : 'text-white'}`} fill={isFavorited ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-6 flex-grow">
           <p className="text-sm text-indigo-400 font-semibold mb-2">{formattedDate}</p>
           <h3 className="text-xl font-bold text-white mb-2 truncate">{event.title}</h3>
           <p className="text-slate-400 flex items-center">
@@ -87,10 +90,9 @@ const EventCard = ({ event }) => {
       <div className="px-6 pb-4">
         <button
           onClick={handleRegister}
-          disabled={isRegistering} // Disable button while the API call is in progress
+          disabled={isRegistering}
           className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {/* Change button text based on loading state */}
           {isRegistering ? 'Registering...' : 'Register Now'}
         </button>
       </div>

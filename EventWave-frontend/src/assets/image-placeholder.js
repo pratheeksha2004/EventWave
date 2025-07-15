@@ -6,5 +6,6 @@ import placeholder2 from './event_placeholder_2.JPEG';
 import placeholder3 from './event_placeholder_3.JPG';
 import placeholder4 from './event_placeholder_4.JPG';
 import placeholder5 from './event_placeholder_5.JPG';
-
-export const placeholderImages = [placeholder1, placeholder2, placeholder3, placeholder4, placeholder5];
+import placeholder6 from './event_placeholder_6.JPG';
+import placeholder7 from './event_placeholder_7.JPG';
+export const placeholderImages = [placeholder1, placeholder2, placeholder3, placeholder4, placeholder5,placeholder6,placeholder7];
