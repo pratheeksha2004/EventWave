@@ -108,13 +108,17 @@ export const registerForEvent = async (eventId) => {
 
 /**
  * Unregisters the logged-in user from an event.
- * API: DELETE /api/registrations/unregister
+ * API: POST /api/registrations/unregister  <-- The API expects a POST request.
  * Body: { "userId": ..., "eventId": ... }
  * @param {object} unregistrationData Object containing userId and eventId.
  */
 export const unregisterFromEvent = async (unregistrationData) => {
-  // A DELETE request with a body is handled like this in axios
-  const response = await api.delete('/api/registrations/unregister', { data: unregistrationData });
+  console.log("Sending unregister POST request with data:", unregistrationData);
+
+  // --- THE FIX: Use api.post to match the successful Postman request ---
+  // A POST request sends the body as the second argument directly.
+  const response = await api.post('/api/registrations/unregister', unregistrationData);
+  
   return response.data;
 };
 
@@ -123,12 +127,7 @@ export const unregisterFromEvent = async (unregistrationData) => {
 // MOCK FUNCTIONS (For any pages not yet integrated)
 // ===============================================
 
-// Only keep mock functions for endpoints that are NOT yet implemented.
-// For example, if getEventById is not yet on the backend:
-const mockEventData = { eventId: 99, title: 'Mock Event', dateTime: '2025-01-01T12:00:00Z', location: 'Mock Location' };
-export const getEventById = async (id) => {
-    return new Promise(resolve => setTimeout(() => resolve(mockEventData), 500));
-};
+
 
 
 /**
@@ -165,3 +164,58 @@ export const deleteEvent = async (eventId) => {
   const response = await api.delete(`/api/organizer/events/${eventId}`);
   return response.data; // The backend returns no content, but we'll return the response data anyway.
 };
+
+
+
+/**
+ * Fetches the details for a single event by its ID.
+ * API: GET /api/attendee/events/{eventId}
+ * @param {string|number} eventId The ID of the event to fetch.
+ */
+export const getEventById = async (eventId) => {
+  // The user is identified by the auth token, which is added automatically by the interceptor.
+  const response = await api.get(`/api/attendee/events/${eventId}`);
+  return response.data;
+};
+
+
+
+
+/**
+ * Fetches events by a specific category.
+ * API: GET /api/attendee/events/by-category/{category}
+ * @param {string} category The category to filter by.
+ */
+export const getEventsByCategory = async (category) => {
+  const response = await api.get(`/api/attendee/events/by-category/${category}`);
+  return response.data;
+};
+
+/**
+ * Fetches events by a specific location.
+ * API: GET /api/attendee/events/filter/location/{location}
+ * @param {string} location The location to filter by.
+ */
+export const getEventsByLocation = async (location) => {
+  const response = await api.get(`/api/attendee/events/filter/location/${location}`);
+  return response.data;
+};
+
+export const getAllEvents = async () => {
+  const response = await api.get('/api/attendee/events');
+  return response.data;
+};
+
+/**
+ * Fetches events within a date range.
+ * API: GET /api/attendee/events/filter/date-range?startDate=...&endDate=...
+ * @param {string} startDate The start date in 'YYYY-MM-DD' format.
+ * @param {string} endDate The end date in 'YYYY-MM-DD' format.
+ */
+export const getEventsByDateRange = async (startDate, endDate) => {
+  // We use query parameters for the date range
+  const response = await api.get(`/api/attendee/events/filter/date-range?startDate=${startDate}&endDate=${endDate}`);
+  return response.data;
+};
+
+

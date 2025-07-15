@@ -8,7 +8,7 @@ import OrganizerLayout from './components/OrganizerLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-
+import EventDetailsPage from './pages/EventDetailsPage'; // Import the new page
 // --- Attendee Page Components ---
 import AttendeeDashboardPage from './pages/AttendeeDashboardPage';
 import MyRegistrationsPage from './pages/MyRegistrationsPage';
@@ -40,6 +40,7 @@ function App() {
         <Route path="/my-wishlist" element={<MyWishlistPage />} />
         {/* Profile page can be shared across layouts if needed */}
         <Route path="/profile" element={<ProfilePage />} /> 
+        <Route path="/events/:eventId" element={<EventDetailsPage />} />
       </Route>
 
       {/* --- ORGANIZER Routes (using OrganizerLayout) --- */}
@@ -49,6 +50,7 @@ function App() {
         {/* ✅ FIX: This route now correctly points to the imported EditEventPage component */}
         <Route path="/events/:id/edit" element={<EditEventPage />} />
         <Route path="/events/:id/attendees" element={<ViewAttendeesPage />} />
+
       </Route>
     </Routes>
   );

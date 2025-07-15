@@ -56,10 +56,7 @@ const AppNavbar = () => {
             </button>
             {/* Dropdown Menu */}
             <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-md shadow-lg py-1 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-300 transform-gpu">
-              <div className="px-4 py-2 border-b border-slate-700">
-                <p className="text-sm text-slate-400">Signed in as</p>
-                <p className="text-sm font-medium text-white truncate">test.user@example.com</p>
-              </div>
+              
               <Link to="/profile" className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50">Edit Profile</Link>
               <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-red-400 hover:bg-slate-700/50">
                 Logout

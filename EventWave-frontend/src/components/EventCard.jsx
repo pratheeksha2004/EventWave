@@ -16,26 +16,36 @@ const EventCard = ({ event }) => {
 
 // inside EventCard.jsx
 
-  const handleRegisterClick = async (e) => {
-    e.preventDefault();
-    setIsRegistering(true);
+  const handleRegister = async () => {
+    // LOG 1: Check if the function is even being called
+    console.log("1. handleRegister function has been triggered!");
 
     try {
-      await registerForEvent(event.eventId);
-      
-      alert(`Successfully registered for "${event.title}"!`);
-      
-      // Use this to force a full page navigation and reload
-      window.location.href = '/my-registrations';
+      // Assuming you get the eventId from state or props
+      const eventId = event.eventId; // Or however you access it
 
+      // LOG 2: Check if you have the eventId before calling the API
+      console.log("2. Attempting to register for eventId:", eventId);
+      
+      if (!eventId) {
+        console.error("CRITICAL: eventId is missing. Cannot register.");
+        alert("Error: Cannot identify the event.");
+        return;
+      }
+
+      const response = await registerForEvent(eventId);
+
+      // LOG 4: This will only run if the API call succeeds
+      console.log("4. API call was successful! Response:", response);
+      alert("Successfully registered for the event!");
+      // Maybe navigate the user away or update the UI
+      
     } catch (err) {
-      console.error("Registration failed:", err);
-      const errorMessage = err.response?.data?.message || 'An error occurred during registration.';
-      alert(`Could not register for this event. Reason: ${errorMessage}`);
-    } finally {
-      setIsRegistering(false);
+      console.error("CRITICAL: The API call failed with an error.", err);
+      alert("Registration failed. Please try again.");
     }
   };
+
 
    const handleFavoriteClick = async (e) => {
     e.preventDefault();
@@ -76,7 +86,7 @@ const EventCard = ({ event }) => {
       </Link>
       <div className="px-6 pb-4">
         <button
-          onClick={handleRegisterClick}
+          onClick={handleRegister}
           disabled={isRegistering} // Disable button while the API call is in progress
           className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >

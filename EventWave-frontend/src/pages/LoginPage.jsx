@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // Good, you need this to read the token
+import { jwtDecode } from 'jwt-decode';
 import AuthLayout from '../components/AuthLayout';
 import { login } from '../api/authService';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  // Using 'username' here is correct if your backend expects a username
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -21,25 +20,32 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      const token = await login(formData); // Assume authService handles the API call
+      // 1. Call the login service, which should return the raw token string.
+      const token = await login(formData);
 
-      // This is the most important part for protected routes to work
+      // --- THIS IS THE FIX ---
+      // 2. Save the token you received directly into localStorage.
+      //    Use the 'token' variable, not a non-existent 'response' variable.
       localStorage.setItem('token', token);
 
-      // Decode the token to find the user's role for redirection
+      // 3. Now, the rest of your logic will work correctly.
       const decodedToken = jwtDecode(token);
-       const userRole = decodedToken.role; // Assumes the role claim is named 'role'
-       console.log('Decoded Token:', decodedToken);
-      // Redirect based on the role
+      const userRole = decodedToken.role; // Make sure your token has a 'role' claim
+      
+      console.log('Login successful. Decoded Token:', decodedToken);
+      
+      // 4. Redirect based on the role.
       if (userRole === 'ORGANIZER') {
         navigate('/organizer-dashboard');
       } else {
-        navigate('/dashboard'); // For attendees ('USER' role)
+        navigate('/dashboard'); // For attendees
       }
 
     } catch (err) {
-       console.error('Login failed:', err); 
-      setError(err.response?.data || 'Login failed. Please check your credentials.');
+      // This will now correctly catch actual API or credential errors.
+      console.error('Login failed:', err);
+      // Use a more generic message for the user.
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -53,7 +59,6 @@ const LoginPage = () => {
       footerLinkText="Sign Up"
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
-        {/* The form correctly uses 'username' */}
         <div>
           <label htmlFor="username" className="block text-sm font-medium text-slate-300">
             Username
@@ -72,7 +77,6 @@ const LoginPage = () => {
           />
         </div>
         
-        {/* Password field is standard */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-slate-300">
             Password
@@ -91,7 +95,13 @@ const LoginPage = () => {
           />
         </div>
         
-        {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+        {/* Updated error display for better user feedback */}
+        {error && (
+          <div className="bg-red-800/40 border border-red-700 text-red-300 px-4 py-3 rounded-md text-center">
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
         <div>
           <button
             type="submit"
