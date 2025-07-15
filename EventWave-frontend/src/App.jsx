@@ -13,7 +13,7 @@ import EventDetailsPage from './pages/EventDetailsPage'; // Import the new page
 import AttendeeDashboardPage from './pages/AttendeeDashboardPage';
 import MyRegistrationsPage from './pages/MyRegistrationsPage';
 import MyWishlistPage from './pages/MyWishlistPage';
-
+import AllFeedbackPage from './pages/AllFeedbackPage'; // Import the new page
 // --- Organizer Page Components ---
 import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
 import CreateEventPage from './pages/CreateEventPage';
@@ -49,6 +49,7 @@ function App() {
         <Route path="/create-event" element={<CreateEventPage />} />
         {/* ✅ FIX: This route now correctly points to the imported EditEventPage component */}
         <Route path="/events/:id/edit" element={<EditEventPage />} />
+         <Route path="organizer/feedback" element={<AllFeedbackPage />} />
         <Route path="/events/:id/attendees" element={<ViewAttendeesPage />} />
 
       </Route>

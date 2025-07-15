@@ -218,4 +218,16 @@ export const getEventsByDateRange = async (startDate, endDate) => {
   return response.data;
 };
 
+/**
+ * Fetches events by searching for a title.
+ * API: GET /api/attendee/events/search/title/{title}
+ * @param {string} title The search term for the event title.
+ */
+export const searchEventsByTitle = async (title) => {
+  // --- THE FIX ---
+  // We construct the URL by putting the title directly into the path,
+  // matching the backend's required format.
+  const response = await api.get(`/api/attendee/events/search/title/${encodeURIComponent(title)}`);
+  return response.data;
+};
 

@@ -12,7 +12,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         // This is the public URL that points to your backend teammate's computer
-        target: 'https://19cd2ef824bb.ngrok-free.app/',
+        target: 'https://75c03d14c748.ngrok-free.app/',
        // https://b69d88014c71.ngrok-free.app/
         // This is a very important setting for ngrok
         changeOrigin: true,
