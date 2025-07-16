@@ -11,8 +11,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // This is the public URL that points to your backend teammate's computer
-        target: 'https://75c03d14c748.ngrok-free.app/',
+        // This is the public URL that points to your backend teammate's compu ter
+        target: 'https://dff5038b5e80.ngrok-free.app/',
        // https://b69d88014c71.ngrok-free.app/
         // This is a very important setting for ngrok
         changeOrigin: true,
@@ -21,5 +21,10 @@ export default defineConfig({
         secure: false,
       },
     },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js', // We will create this file next
   },
 })
